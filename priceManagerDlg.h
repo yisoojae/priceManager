@@ -3,7 +3,7 @@
 //
 
 #pragma once
-
+#define tDataMax 0xffff
 
 // CpriceManagerDlg 대화 상자
 class CpriceManagerDlg : public CDialogEx
@@ -11,6 +11,10 @@ class CpriceManagerDlg : public CDialogEx
 // 생성입니다.
 public:
 	CpriceManagerDlg(CWnd* pParent = nullptr);	// 표준 생성자입니다.
+	~CpriceManagerDlg();
+	CFile t_data;
+	bool isData = false;
+	BYTE buffer[tDataMax] = { 0, };
 
 // 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME

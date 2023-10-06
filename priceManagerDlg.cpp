@@ -56,6 +56,11 @@ CpriceManagerDlg::CpriceManagerDlg(CWnd* pParent /*=nullptr*/)
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
+CpriceManagerDlg::~CpriceManagerDlg()
+{
+	if (isData) t_data.Close();
+}
+
 void CpriceManagerDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
@@ -100,6 +105,59 @@ BOOL CpriceManagerDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
+	CString msgA;
+	if (isData = t_data.Open(_T("priceData.txt"), CFile::modeCreate | CFile::modeReadWrite | CFile::modeNoTruncate, NULL))
+	{
+		int nBytesRead = t_data.Read(buffer, sizeof(buffer) - 1);
+		if (nBytesRead != t_data.GetLength())
+		{
+			msgA.Format(_T("파일 데이터가 너무 큽니다."));
+			MessageBox(msgA);
+			t_data.Close();
+			isData = false;
+			return 0;
+		}
+		unsigned char* pBuffer = buffer;
+		unsigned char* pBuffer2 = pBuffer;
+		buffer[nBytesRead] = '\0';
+		while (*pBuffer2)
+		{
+			while (*(++pBuffer2) != '@') { if (!pBuffer2) break; }
+			char* aa = (char*)malloc((pBuffer2 - pBuffer) + 1);
+			char* tmp = aa;
+			LPTSTR buffer_Uni = (LPTSTR)malloc(tDataMax);
+			if (!aa) break;
+			for (; pBuffer < pBuffer2; )
+			{
+				*(tmp++) = *(pBuffer++);
+			}
+			*tmp = '\0'; ++pBuffer; ++pBuffer; ++pBuffer; ++pBuffer2; ++pBuffer2; ++pBuffer2;
+			MultiByteToWideChar(CP_UTF8, 0, aa, strlen(aa) + 1, buffer_Uni, MultiByteToWideChar(CP_UTF8, 0, aa, strlen(aa), 0, 0) + 1);
+			MessageBox((LPCTSTR)buffer_Uni);
+			free(aa); free(buffer_Uni);
+			while (*(++pBuffer2) != '!') { if (!pBuffer2) break; }
+			aa = (char*)malloc((pBuffer2 - pBuffer) + 1);
+			tmp = aa;
+			buffer_Uni = (LPTSTR)malloc(tDataMax);
+			if (!aa) break;
+			for (; pBuffer < pBuffer2; )
+			{
+				*(tmp++) = *(pBuffer++);
+			}
+			*tmp = '\0'; ++pBuffer; ++pBuffer2;
+			MultiByteToWideChar(CP_UTF8, 0, aa, strlen(aa) + 1, buffer_Uni, MultiByteToWideChar(CP_UTF8, 0, aa, strlen(aa), 0, 0) + 1);
+			MessageBox((LPCTSTR)buffer_Uni);
+			free(aa); free(buffer_Uni);
+			if (pBuffer2 != '\0')
+			{
+				++pBuffer; ++pBuffer; ++pBuffer2; ++pBuffer2;
+			}
+		}
+		/*
+		msgA.Format(_T("%d"), (int)strlen((char*)buffer));
+		MessageBox(msgA);
+		*/
+	}
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
