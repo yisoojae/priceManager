@@ -70,6 +70,7 @@ BEGIN_MESSAGE_MAP(CpriceManagerDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_CBN_SELCHANGE(comboBox_ID1, &CpriceManagerDlg::OnCbnSelChange)
 END_MESSAGE_MAP()
 
 
@@ -105,6 +106,7 @@ BOOL CpriceManagerDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
+	m_title.Create(WS_VISIBLE | WS_CHILD | WS_VSCROLL | CBS_DROPDOWN, { 30,10,130,30 }, this, comboBox_ID1);
 	CString msgA;
 	if (isData = t_data.Open(_T("priceData.txt"), CFile::modeCreate | CFile::modeReadWrite | CFile::modeNoTruncate, NULL))
 	{
@@ -134,6 +136,7 @@ BOOL CpriceManagerDlg::OnInitDialog()
 			*tmp = '\0'; ++pBuffer; ++pBuffer; ++pBuffer; ++pBuffer2; ++pBuffer2; ++pBuffer2;
 			MultiByteToWideChar(CP_UTF8, 0, aa, strlen(aa) + 1, buffer_Uni, MultiByteToWideChar(CP_UTF8, 0, aa, strlen(aa), 0, 0) + 1);
 			MessageBox((LPCTSTR)buffer_Uni);
+			m_title.AddString(buffer_Uni);
 			free(aa); free(buffer_Uni);
 			while (*(++pBuffer2) != '!') { if (!pBuffer2) break; }
 			aa = (char*)malloc((pBuffer2 - pBuffer) + 1);
@@ -158,6 +161,7 @@ BOOL CpriceManagerDlg::OnInitDialog()
 		MessageBox(msgA);
 		*/
 	}
+	m_title.SetCurSel(0);
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -227,4 +231,11 @@ BOOL CpriceManagerDlg::PreTranslateMessage(MSG* pMsg)
 		}
 	}
 	return CDialogEx::PreTranslateMessage(pMsg);
+}
+
+void CpriceManagerDlg::OnCbnSelChange()
+{
+	CString msg_1;
+	msg_1.Format(_T("%d"), m_title.GetCurSel());
+	MessageBox(msg_1);
 }

@@ -4,6 +4,7 @@
 
 #pragma once
 #define tDataMax 0xffff
+#define comboBox_ID1 1001
 
 // CpriceManagerDlg 대화 상자
 class CpriceManagerDlg : public CDialogEx
@@ -34,7 +35,10 @@ protected:
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
+	void OnCbnSelChange();
 	DECLARE_MESSAGE_MAP()
 public:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
+public:
+	CComboBox m_title;
 };
