@@ -59,6 +59,13 @@ CpriceManagerDlg::CpriceManagerDlg(CWnd* pParent /*=nullptr*/)
 CpriceManagerDlg::~CpriceManagerDlg()
 {
 	if (isData) t_data.Close();
+	for (unsigned int i = 0; i < nTab; i++)
+	{
+		free(bufferUni_data[i]);
+		free(bufferUni_title[i]);
+	}
+	if (bufferUni_data) free(bufferUni_data);
+	if (bufferUni_title) free(bufferUni_title);
 }
 
 void CpriceManagerDlg::DoDataExchange(CDataExchange* pDX)
@@ -70,7 +77,8 @@ BEGIN_MESSAGE_MAP(CpriceManagerDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-	ON_CBN_SELCHANGE(comboBox_ID1, &CpriceManagerDlg::OnCbnSelChange)
+	ON_CBN_SELCHANGE(comboBox_ID1, &CpriceManagerDlg::OnCbnSelChange_t)
+	ON_CBN_SELCHANGE(comboBox_ID2, &CpriceManagerDlg::OnCbnSelChange_s)
 END_MESSAGE_MAP()
 
 
@@ -106,13 +114,22 @@ BOOL CpriceManagerDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
-	m_title.Create(WS_VISIBLE | WS_CHILD | WS_VSCROLL | CBS_DROPDOWN, { 30,10,130,30 }, this, comboBox_ID1);
-	CString msgA;
+	m_title.Create(WS_VISIBLE | WS_CHILD | WS_VSCROLL | CBS_DROPDOWNLIST, { 30,10,130,30 }, this, comboBox_ID1);
+	m_sumBox.Create(WS_VISIBLE | WS_CHILD | WS_VSCROLL | CBS_DROPDOWNLIST, { 30,320,130,340 }, this, comboBox_ID2);
+
+	bufferUni_title = (LPTSTR*)malloc(tTabMax * sizeof(LPTSTR));
+	if (!bufferUni_title) return 0;
+	bufferUni_data = (LPTSTR*)malloc(tTabMax * sizeof(LPTSTR));
+	if (!bufferUni_data) return 0;
+
+
+
 	if (isData = t_data.Open(_T("priceData.txt"), CFile::modeCreate | CFile::modeReadWrite | CFile::modeNoTruncate, NULL))
 	{
 		int nBytesRead = t_data.Read(buffer, sizeof(buffer) - 1);
 		if (nBytesRead != t_data.GetLength())
 		{
+			CString msgA;
 			msgA.Format(_T("파일 데이터가 너무 큽니다."));
 			MessageBox(msgA);
 			t_data.Close();
@@ -122,46 +139,93 @@ BOOL CpriceManagerDlg::OnInitDialog()
 		unsigned char* pBuffer = buffer;
 		unsigned char* pBuffer2 = pBuffer;
 		buffer[nBytesRead] = '\0';
+
+
+
 		while (*pBuffer2)
 		{
-			while (*(++pBuffer2) != '@') { if (!pBuffer2) break; }
+			while (*(++pBuffer2) != '@') { if (!*pBuffer2) break; }
 			char* aa = (char*)malloc((pBuffer2 - pBuffer) + 1);
-			char* tmp = aa;
-			LPTSTR buffer_Uni = (LPTSTR)malloc(tDataMax);
 			if (!aa) break;
+			char* tmp = aa;
+			bufferUni_title[nTab] = (LPTSTR)malloc(tTitleMax * sizeof(LPTSTR));
+			if (!bufferUni_title) break;
 			for (; pBuffer < pBuffer2; )
 			{
 				*(tmp++) = *(pBuffer++);
 			}
-			*tmp = '\0'; ++pBuffer; ++pBuffer; ++pBuffer; ++pBuffer2; ++pBuffer2; ++pBuffer2;
-			MultiByteToWideChar(CP_UTF8, 0, aa, strlen(aa) + 1, buffer_Uni, MultiByteToWideChar(CP_UTF8, 0, aa, strlen(aa), 0, 0) + 1);
-			MessageBox((LPCTSTR)buffer_Uni);
-			m_title.AddString(buffer_Uni);
-			free(aa); free(buffer_Uni);
-			while (*(++pBuffer2) != '!') { if (!pBuffer2) break; }
+			*tmp = '\0';
+			++pBuffer; ++pBuffer; ++pBuffer;
+			++pBuffer2; ++pBuffer2; ++pBuffer2;
+			MultiByteToWideChar(CP_UTF8, 0, aa, (int)strlen(aa) + 1, bufferUni_title[nTab], MultiByteToWideChar(CP_UTF8, 0, aa, (int)strlen(aa), 0, 0) + 1);
+			m_title.AddString(bufferUni_title[nTab]);
+			free(aa);
+
+
+
+			while (*(++pBuffer2) != '!') { if (!*pBuffer2) break; }
 			aa = (char*)malloc((pBuffer2 - pBuffer) + 1);
+			if (!aa)
+			{
+				free(bufferUni_title[nTab]);
+				break;
+			}
 			tmp = aa;
-			buffer_Uni = (LPTSTR)malloc(tDataMax);
-			if (!aa) break;
+			bufferUni_data[nTab] = (LPTSTR)malloc(tDataMax * sizeof(LPTSTR));
+			if (!bufferUni_data[nTab])
+			{
+				free(bufferUni_title[nTab]);
+				break;
+			}
 			for (; pBuffer < pBuffer2; )
 			{
 				*(tmp++) = *(pBuffer++);
 			}
 			*tmp = '\0'; ++pBuffer; ++pBuffer2;
-			MultiByteToWideChar(CP_UTF8, 0, aa, strlen(aa) + 1, buffer_Uni, MultiByteToWideChar(CP_UTF8, 0, aa, strlen(aa), 0, 0) + 1);
-			MessageBox((LPCTSTR)buffer_Uni);
-			free(aa); free(buffer_Uni);
-			if (pBuffer2 != '\0')
+			MultiByteToWideChar(CP_UTF8, 0, aa, (int)strlen(aa) + 1, bufferUni_data[nTab], MultiByteToWideChar(CP_UTF8, 0, aa, (int)strlen(aa), 0, 0) + 1);
+			free(aa);
+			++nTab;
+			if (*pBuffer2 != '\0')
 			{
-				++pBuffer; ++pBuffer; ++pBuffer2; ++pBuffer2;
+				++pBuffer; ++pBuffer;
+				++pBuffer2; ++pBuffer2;
 			}
 		}
-		/*
-		msgA.Format(_T("%d"), (int)strlen((char*)buffer));
-		MessageBox(msgA);
-		*/
 	}
+	int tmp001 = 0;
+	if (item_data = (CEdit**)malloc(tItemMax * sizeof(CEdit**)))
+	{
+		++tmp001;
+		if (price_data = (CEdit**)malloc(tItemMax * sizeof(CEdit**)))
+		{
+			++tmp001;
+			if (class_data = (CEdit**)malloc(tItemMax * sizeof(CEdit**)))
+			{
+				++tmp001;
+				if (itemsum_data = (CEdit**)malloc(tItemMax * sizeof(CEdit**))) ++tmp001;
+			}
+		}
+	}
+	if (tmp001 != 4)
+	{
+		if (tmp001 != 0)
+		{
+			free(item_data);
+			if (tmp001 != 1)
+			{
+				free(price_data);
+				if (tmp001 != 2) free(class_data);
+			}
+		}
+		return 0;
+	}
+	for (int i = 0; i < tItemMax; i++)item_data[i] = new CEdit();
+	for (int i = 0; i < tItemMax; i++)price_data[i] = new CEdit();
+	for (int i = 0; i < tItemMax; i++)class_data[i] = new CEdit();
+	for (int i = 0; i < tItemMax; i++)itemsum_data[i] = new CEdit();
+
 	m_title.SetCurSel(0);
+	tFunc_selchange(0);
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -233,9 +297,88 @@ BOOL CpriceManagerDlg::PreTranslateMessage(MSG* pMsg)
 	return CDialogEx::PreTranslateMessage(pMsg);
 }
 
-void CpriceManagerDlg::OnCbnSelChange()
+void CpriceManagerDlg::OnCbnSelChange_t()
 {
-	CString msg_1;
-	msg_1.Format(_T("%d"), m_title.GetCurSel());
-	MessageBox(msg_1);
+	tFunc_selchange(m_title.GetCurSel());
+}
+
+void CpriceManagerDlg::tFunc_selchange(int nSel)
+{
+	scrollIndex = 0;
+	for (unsigned int i = 0; i < nData; i++)
+	{
+		::DestroyWindow(item_data[i]->m_hWnd);
+		::DestroyWindow(price_data[i]->m_hWnd);
+		::DestroyWindow(class_data[i]->m_hWnd);
+		::DestroyWindow(itemsum_data[i]->m_hWnd);
+	}
+	nData = 0;
+	LPTSTR aa = (LPTSTR)malloc(tTitleMax * sizeof(LPTSTR));
+	if (!aa) return;
+
+	LPTSTR pBuffer = bufferUni_data[nSel];
+	LPTSTR pBuffer2 = pBuffer;
+	while (*pBuffer2)
+	{
+		item_data[nData]->Create(WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL, { 10,40 + (long)(nData * 25),110,60 + (long)(nData * 25) }, this, 3 * nData + 1);
+		price_data[nData]->Create(WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL, { 115,40 + (long)(nData * 25),345,60 + (long)(nData * 25) }, this, 3 * nData + 1);
+		class_data[nData]->Create(WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL, { 350,40 + (long)(nData * 25),450,60 + (long)(nData * 25) }, this, 3 * nData + 1);
+		itemsum_data[nData]->Create(WS_VISIBLE | WS_CHILD | WS_BORDER | ES_READONLY, { 455,40 + (long)(nData * 25),550,60 + (long)(nData * 25) }, this, 3 * nData + 1);
+		LPTSTR tmp = aa;
+		while (*(++pBuffer2) != 0x0020/*_T(" ")*/) { if (!*pBuffer2) break; }
+		for (; pBuffer < pBuffer2; )
+		{
+			*(tmp++) = *(pBuffer++);
+		}
+		*tmp = 0x0000;
+		item_data[nData]->SetWindowTextW(aa);
+
+		++pBuffer;
+		++pBuffer2;
+		tmp = aa;
+		while (*(++pBuffer2) != 0x0020/*_T(" ")*/) { if (!*pBuffer2) break; }
+		for (; pBuffer < pBuffer2; )
+		{
+			*(tmp++) = *(pBuffer++);
+		}
+		*tmp = 0x0000;
+		price_data[nData]->SetWindowTextW(aa);
+
+		++pBuffer;
+		++pBuffer2;
+		tmp = aa;
+		while (*(++pBuffer2) != 0x000D/*'\r'*/) { if (!*pBuffer2) break; }
+		for (; pBuffer < pBuffer2; )
+		{
+			*(tmp++) = *(pBuffer++);
+		}
+		*tmp = 0x0000;
+		class_data[nData]->SetWindowTextW(aa);
+
+		++nData;
+		if (*pBuffer2 != 0x0000)
+		{
+			++pBuffer; ++pBuffer;
+			++pBuffer2; ++pBuffer2;
+		}
+	}
+	free(aa);
+
+	m_sumBox.ResetContent();
+	m_sumBox.AddString(_T("전체"));
+	m_sumBox.SetCurSel(0);
+	sFunc_selchange(0);
+}
+
+void CpriceManagerDlg::OnCbnSelChange_s()
+{
+	sFunc_selchange(m_sumBox.GetCurSel());
+}
+
+void CpriceManagerDlg::sFunc_selchange(int nSel)
+{
+	CString sumselText;
+	m_sumBox.GetLBText(nSel, sumselText);
+	MessageBox((LPCTSTR)sumselText);
+
 }
