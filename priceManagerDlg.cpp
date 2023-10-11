@@ -116,6 +116,7 @@ BOOL CpriceManagerDlg::OnInitDialog()
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 	m_title.Create(WS_VISIBLE | WS_CHILD | WS_VSCROLL | CBS_DROPDOWNLIST, { 30,10,130,30 }, this, comboBox_ID1);
 	m_sumBox.Create(WS_VISIBLE | WS_CHILD | WS_VSCROLL | CBS_DROPDOWNLIST, { 30,320,130,340 }, this, comboBox_ID2);
+	ifSum_data.Create(WS_VISIBLE | WS_CHILD | WS_BORDER | ES_READONLY, { 455,320,550,340 }, this, sumEdit_ID);
 
 	bufferUni_title = (LPTSTR*)malloc(tTabMax * sizeof(LPTSTR));
 	if (!bufferUni_title) return 0;
@@ -312,18 +313,22 @@ void CpriceManagerDlg::tFunc_selchange(int nSel)
 		::DestroyWindow(class_data[i]->m_hWnd);
 		::DestroyWindow(itemsum_data[i]->m_hWnd);
 	}
-	nData = 0;
+	nData = 0; nClass = 0;
 	LPTSTR aa = (LPTSTR)malloc(tTitleMax * sizeof(LPTSTR));
 	if (!aa) return;
 
 	LPTSTR pBuffer = bufferUni_data[nSel];
 	LPTSTR pBuffer2 = pBuffer;
+	m_sumBox.ResetContent();
+	m_sumBox.AddString(_T("전체"));
+
 	while (*pBuffer2)
 	{
 		item_data[nData]->Create(WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL, { 10,40 + (long)(nData * 25),110,60 + (long)(nData * 25) }, this, 3 * nData + 1);
 		price_data[nData]->Create(WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL, { 115,40 + (long)(nData * 25),345,60 + (long)(nData * 25) }, this, 3 * nData + 1);
 		class_data[nData]->Create(WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL, { 350,40 + (long)(nData * 25),450,60 + (long)(nData * 25) }, this, 3 * nData + 1);
 		itemsum_data[nData]->Create(WS_VISIBLE | WS_CHILD | WS_BORDER | ES_READONLY, { 455,40 + (long)(nData * 25),550,60 + (long)(nData * 25) }, this, 3 * nData + 1);
+		// 최대 11개
 		LPTSTR tmp = aa;
 		while (*(++pBuffer2) != 0x0020/*_T(" ")*/) { if (!*pBuffer2) break; }
 		for (; pBuffer < pBuffer2; )
@@ -343,6 +348,34 @@ void CpriceManagerDlg::tFunc_selchange(int nSel)
 		}
 		*tmp = 0x0000;
 		price_data[nData]->SetWindowTextW(aa);
+		LPTSTR pTrans = aa;
+		int transSum = 0;
+		int transTmp = 0;
+		while (*pTrans)
+		{
+			if (*pTrans >= 0x0030 && *pTrans <= 0x0039)
+			{
+				transTmp *= 10;
+				transTmp += ((int)*pTrans - 0x0030);
+			}
+			else
+			{
+				switch (*pTrans)
+				{
+				case 0x002b:
+					transSum += transTmp;
+					transTmp = 0;
+					break;
+				default:
+					break;
+				}
+			}
+			++pTrans;
+		}
+		transSum += transTmp;
+		CString tmp002;
+		tmp002.Format(_T("%d"), transSum);
+		itemsum_data[nData]->SetWindowTextW((LPCTSTR)tmp002);
 
 		++pBuffer;
 		++pBuffer2;
@@ -353,7 +386,28 @@ void CpriceManagerDlg::tFunc_selchange(int nSel)
 			*(tmp++) = *(pBuffer++);
 		}
 		*tmp = 0x0000;
-		class_data[nData]->SetWindowTextW(aa);
+		class_data[nData]->SetWindowText(aa);
+		bool overlapSel = false;
+		for (unsigned int i = 1; i < nClass + 1; i++)
+		{
+			CString sumselText;
+			m_sumBox.GetLBText(i, sumselText);
+			LPTSTR psumselText = (LPTSTR) & *sumselText;
+			LPTSTR pTrans = psumselText;
+			tmp = aa;
+			while (*tmp)
+			{
+				if (*(tmp++) == *(pTrans++)) continue;
+				break;
+			}
+			if (*tmp == 0x0000 && *pTrans == 0x0000) overlapSel = true;
+			if (overlapSel) break;
+		}
+		if (!overlapSel)
+		{
+			++nClass;
+			m_sumBox.AddString(aa);
+		}
 
 		++nData;
 		if (*pBuffer2 != 0x0000)
@@ -364,8 +418,6 @@ void CpriceManagerDlg::tFunc_selchange(int nSel)
 	}
 	free(aa);
 
-	m_sumBox.ResetContent();
-	m_sumBox.AddString(_T("전체"));
 	m_sumBox.SetCurSel(0);
 	sFunc_selchange(0);
 }
@@ -377,8 +429,35 @@ void CpriceManagerDlg::OnCbnSelChange_s()
 
 void CpriceManagerDlg::sFunc_selchange(int nSel)
 {
-	CString sumselText;
-	m_sumBox.GetLBText(nSel, sumselText);
-	MessageBox((LPCTSTR)sumselText);
-
+	switch (nSel)
+	{
+	case 0:
+	{
+		CString tmpValue;
+		int transSum = 0;
+		int transTmp = 0;
+		for (unsigned int i = 0; i < nData; i++)
+		{
+			itemsum_data[i]->GetWindowText(tmpValue);
+			LPTSTR ptmpValue = (LPTSTR) & *tmpValue;
+			LPTSTR pTrans = ptmpValue;
+			while (*pTrans)
+			{
+				transTmp *= 10;
+				transTmp += ((int)*pTrans - 0x0030);
+				++pTrans;
+			}
+			transSum += transTmp;
+			transTmp = 0;
+		}
+		CString tmp001;
+		tmp001.Format(_T("%d"), transSum);
+		ifSum_data.SetWindowText(tmp001);
+	}
+	default:
+	{
+		CString sumselText;
+		m_sumBox.GetLBText(nSel, sumselText);
+	}
+	}
 }

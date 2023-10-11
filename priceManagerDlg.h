@@ -9,6 +9,7 @@
 #define tItemMax 50
 #define comboBox_ID1 1001
 #define comboBox_ID2 1002
+#define sumEdit_ID 1003
 
 // CpriceManagerDlg 대화 상자
 class CpriceManagerDlg : public CDialogEx
@@ -25,11 +26,13 @@ public:
 	unsigned int nTab = 0;						// 데이터 총 탭수
 	unsigned int scrollIndex = 0;				// 몇 번째 스크롤인지
 	unsigned int nData = 0;						// 데이터 항목 개수
+	unsigned int nClass = 0;					// 항목 종류 개수
 	// CEdit들
 	CEdit** item_data = nullptr;
 	CEdit** price_data = nullptr;
 	CEdit** class_data = nullptr;
 	CEdit** itemsum_data = nullptr;
+	CEdit ifSum_data;
 
 // 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
