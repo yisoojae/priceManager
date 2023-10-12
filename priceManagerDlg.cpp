@@ -162,8 +162,8 @@ BOOL CpriceManagerDlg::OnInitDialog()
 				*(tmp++) = *(pBuffer++);
 			}
 			*tmp = '\0';
-			++pBuffer; ++pBuffer; ++pBuffer;
-			++pBuffer2; ++pBuffer2; ++pBuffer2;
+			++pBuffer; ++pBuffer;
+			++pBuffer2; ++pBuffer2;
 			MultiByteToWideChar(CP_UTF8, 0, aa, (int)strlen(aa) + 1, bufferUni_title[nTab], MultiByteToWideChar(CP_UTF8, 0, aa, (int)strlen(aa), 0, 0) + 1);
 			m_title.AddString(bufferUni_title[nTab]);
 			free(aa);
@@ -194,8 +194,8 @@ BOOL CpriceManagerDlg::OnInitDialog()
 			++nTab;
 			if (*pBuffer2 != '\0')
 			{
-				++pBuffer; ++pBuffer;
-				++pBuffer2; ++pBuffer2;
+				++pBuffer;
+				++pBuffer2;
 			}
 		}
 	}
@@ -395,7 +395,7 @@ void CpriceManagerDlg::tFunc_selchange(int nSel)
 		++pBuffer;
 		++pBuffer2;
 		tmp = aa;
-		while (*(++pBuffer2) != 0x000D/*'\r'*/) { if (!*pBuffer2) break; }
+		while (*(++pBuffer2) != 0x000A/*'\n'*/) { if (!*pBuffer2) break; }
 		for (; pBuffer < pBuffer2; )
 		{
 			*(tmp++) = *(pBuffer++);
@@ -427,8 +427,8 @@ void CpriceManagerDlg::tFunc_selchange(int nSel)
 		++nData;
 		if (*pBuffer2 != 0x0000)
 		{
-			++pBuffer; ++pBuffer;
-			++pBuffer2; ++pBuffer2;
+			++pBuffer;
+			++pBuffer2;
 		}
 	}
 	free(aa);
