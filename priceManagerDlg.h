@@ -10,6 +10,7 @@
 #define comboBox_ID1 1001
 #define comboBox_ID2 1002
 #define sumEdit_ID 1003
+#define saveButton_ID 1004
 
 // CpriceManagerDlg 대화 상자
 class CpriceManagerDlg : public CDialogEx
@@ -35,6 +36,7 @@ public:
 	// CEdit들
 	HBRUSH yellowBrush;
 	bool* isColor = nullptr;					// 강조 표시되었는지
+	CButton saveButton;							// 파일 기록 버튼
 
 // 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
@@ -56,6 +58,7 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	void OnCbnSelChange_t();
 	void OnCbnSelChange_s();
+	void OnBnClicked();
 	DECLARE_MESSAGE_MAP()
 public:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);

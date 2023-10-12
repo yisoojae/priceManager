@@ -82,6 +82,7 @@ BEGIN_MESSAGE_MAP(CpriceManagerDlg, CDialogEx)
 	ON_CBN_SELCHANGE(comboBox_ID2, &CpriceManagerDlg::OnCbnSelChange_s)
 	ON_WM_CTLCOLOR()
 	ON_WM_MOUSEWHEEL()
+	ON_BN_CLICKED(saveButton_ID, &CpriceManagerDlg::OnBnClicked)
 END_MESSAGE_MAP()
 
 
@@ -120,6 +121,7 @@ BOOL CpriceManagerDlg::OnInitDialog()
 	m_title.Create(WS_VISIBLE | WS_CHILD | WS_VSCROLL | CBS_DROPDOWNLIST, { 30,10,130,30 }, this, comboBox_ID1);
 	m_sumBox.Create(WS_VISIBLE | WS_CHILD | WS_VSCROLL | CBS_DROPDOWNLIST, { 30,320,130,340 }, this, comboBox_ID2);
 	ifSum_data.Create(WS_VISIBLE | WS_CHILD | WS_BORDER | ES_READONLY, { 455,320,550,340 }, this, sumEdit_ID);
+	saveButton.Create(_T("저 장"), WS_VISIBLE | WS_CHILD , { 455,5,550,35 }, this, saveButton_ID);
 	yellowBrush = CreateSolidBrush(0x0000ffff);
 
 	bufferUni_title = (LPTSTR*)malloc(tTabMax * sizeof(LPTSTR));
@@ -565,4 +567,11 @@ wheelEnd:
 	}
 	UnlockWindowUpdate();
 	return CDialogEx::OnMouseWheel(nFlags, zDelta, pt);
+}
+
+void CpriceManagerDlg::OnBnClicked()
+{
+
+
+	tFunc_selchange(m_title.GetCurSel());
 }
