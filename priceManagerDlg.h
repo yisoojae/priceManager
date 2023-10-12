@@ -27,12 +27,14 @@ public:
 	unsigned int scrollIndex = 0;				// 몇 번째 스크롤인지
 	unsigned int nData = 0;						// 데이터 항목 개수
 	unsigned int nClass = 0;					// 항목 종류 개수
-	// CEdit들
 	CEdit** item_data = nullptr;
 	CEdit** price_data = nullptr;
 	CEdit** class_data = nullptr;
 	CEdit** itemsum_data = nullptr;
 	CEdit ifSum_data;
+	// CEdit들
+	HBRUSH yellowBrush;
+	bool* isColor = nullptr;					// 강조 표시되었는지
 
 // 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
@@ -61,4 +63,5 @@ public:
 	void sFunc_selchange(int nSel);
 public:
 	CComboBox m_title, m_sumBox;
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 };

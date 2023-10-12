@@ -58,6 +58,7 @@ CpriceManagerDlg::CpriceManagerDlg(CWnd* pParent /*=nullptr*/)
 
 CpriceManagerDlg::~CpriceManagerDlg()
 {
+	DeleteObject(yellowBrush);
 	if (isData) t_data.Close();
 	for (unsigned int i = 0; i < nTab; i++)
 	{
@@ -79,6 +80,7 @@ BEGIN_MESSAGE_MAP(CpriceManagerDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_CBN_SELCHANGE(comboBox_ID1, &CpriceManagerDlg::OnCbnSelChange_t)
 	ON_CBN_SELCHANGE(comboBox_ID2, &CpriceManagerDlg::OnCbnSelChange_s)
+	ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
 
@@ -117,6 +119,7 @@ BOOL CpriceManagerDlg::OnInitDialog()
 	m_title.Create(WS_VISIBLE | WS_CHILD | WS_VSCROLL | CBS_DROPDOWNLIST, { 30,10,130,30 }, this, comboBox_ID1);
 	m_sumBox.Create(WS_VISIBLE | WS_CHILD | WS_VSCROLL | CBS_DROPDOWNLIST, { 30,320,130,340 }, this, comboBox_ID2);
 	ifSum_data.Create(WS_VISIBLE | WS_CHILD | WS_BORDER | ES_READONLY, { 455,320,550,340 }, this, sumEdit_ID);
+	yellowBrush = CreateSolidBrush(0x0000ffff);
 
 	bufferUni_title = (LPTSTR*)malloc(tTabMax * sizeof(LPTSTR));
 	if (!bufferUni_title) return 0;
@@ -220,6 +223,8 @@ BOOL CpriceManagerDlg::OnInitDialog()
 		}
 		return 0;
 	}
+	isColor = (bool*)calloc(tItemMax, sizeof(bool));
+	if (!isColor) return 0;
 	for (int i = 0; i < tItemMax; i++)item_data[i] = new CEdit();
 	for (int i = 0; i < tItemMax; i++)price_data[i] = new CEdit();
 	for (int i = 0; i < tItemMax; i++)class_data[i] = new CEdit();
@@ -453,11 +458,45 @@ void CpriceManagerDlg::sFunc_selchange(int nSel)
 		CString tmp001;
 		tmp001.Format(_T("%d"), transSum);
 		ifSum_data.SetWindowText(tmp001);
+		memset(isColor, 0, tItemMax);
+		Invalidate();
+		break;
 	}
 	default:
 	{
 		CString sumselText;
 		m_sumBox.GetLBText(nSel, sumselText);
+		for (unsigned int i = 0; i < nData; i++)
+		{
+			CString classText;
+			class_data[i]->GetWindowText(classText);
+			if (sumselText == classText)
+			{
+				isColor[i] = true;
+			}
+			else
+			{
+				isColor[i] = false;
+			}
+		}
+		Invalidate();
 	}
 	}
+}
+
+HBRUSH CpriceManagerDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
+
+	// TODO:  여기서 DC의 특성을 변경합니다.
+	//pDC->SetBkColor(RGB(255, 255, 0));
+	// TODO:  기본값이 적당하지 않으면 다른 브러시를 반환합니다.
+	for (int i = 0; i < tItemMax; i++)
+	{
+		if (pWnd == itemsum_data[i]) if (isColor[i])
+		{
+			return isColor[i] ? yellowBrush : (HBRUSH)GetStockObject(WHITE_BRUSH);
+		}
+	}
+	return hbr;
 }
