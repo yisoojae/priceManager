@@ -464,6 +464,7 @@ void CpriceManagerDlg::sFunc_selchange(int nSel)
 	}
 	default:
 	{
+		int ifsumTmp = 0;
 		CString sumselText;
 		m_sumBox.GetLBText(nSel, sumselText);
 		for (unsigned int i = 0; i < nData; i++)
@@ -473,12 +474,16 @@ void CpriceManagerDlg::sFunc_selchange(int nSel)
 			if (sumselText == classText)
 			{
 				isColor[i] = true;
+				itemsum_data[i]->GetWindowText(classText);
+				ifsumTmp += _wtoi(classText);
 			}
 			else
 			{
 				isColor[i] = false;
 			}
 		}
+		sumselText.Format(_T("%d"), ifsumTmp);
+		ifSum_data.SetWindowText(sumselText);
 		Invalidate();
 	}
 	}
