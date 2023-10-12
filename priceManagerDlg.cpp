@@ -81,6 +81,7 @@ BEGIN_MESSAGE_MAP(CpriceManagerDlg, CDialogEx)
 	ON_CBN_SELCHANGE(comboBox_ID1, &CpriceManagerDlg::OnCbnSelChange_t)
 	ON_CBN_SELCHANGE(comboBox_ID2, &CpriceManagerDlg::OnCbnSelChange_s)
 	ON_WM_CTLCOLOR()
+	ON_WM_MOUSEWHEEL()
 END_MESSAGE_MAP()
 
 
@@ -333,6 +334,13 @@ void CpriceManagerDlg::tFunc_selchange(int nSel)
 		price_data[nData]->Create(WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL, { 115,40 + (long)(nData * 25),345,60 + (long)(nData * 25) }, this, 3 * nData + 1);
 		class_data[nData]->Create(WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL, { 350,40 + (long)(nData * 25),450,60 + (long)(nData * 25) }, this, 3 * nData + 1);
 		itemsum_data[nData]->Create(WS_VISIBLE | WS_CHILD | WS_BORDER | ES_READONLY, { 455,40 + (long)(nData * 25),550,60 + (long)(nData * 25) }, this, 3 * nData + 1);
+		if (nData > 10)
+		{
+			item_data[nData]->ShowWindow(SW_HIDE);
+			price_data[nData]->ShowWindow(SW_HIDE);
+			class_data[nData]->ShowWindow(SW_HIDE);
+			itemsum_data[nData]->ShowWindow(SW_HIDE);
+		}
 		// 최대 11개
 		LPTSTR tmp = aa;
 		while (*(++pBuffer2) != 0x0020/*_T(" ")*/) { if (!*pBuffer2) break; }
@@ -504,4 +512,57 @@ HBRUSH CpriceManagerDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 		}
 	}
 	return hbr;
+}
+
+
+BOOL CpriceManagerDlg::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+	if (zDelta > 0)
+	{
+		if (scrollIndex > 0)
+		{
+			--scrollIndex;
+			goto wheelEnd;
+		}
+	}
+	else
+	{
+		if (nData - scrollIndex > 11)
+		{
+			++scrollIndex;
+			goto wheelEnd;
+		}
+	}
+	return CDialogEx::OnMouseWheel(nFlags, zDelta, pt);
+
+wheelEnd:
+	LockWindowUpdate();
+	for (unsigned int i = 0; i < nData; i++)
+	{
+		CRect rectTmp = { 10,40 + (long)((i - scrollIndex) * 25),110,60 + (long)((i - scrollIndex) * 25) };
+		item_data[i]->MoveWindow(rectTmp);
+		rectTmp = { 115,40 + (long)((i - scrollIndex) * 25),345,60 + (long)((i - scrollIndex) * 25) };
+		price_data[i]->MoveWindow(rectTmp);
+		rectTmp = { 350,40 + (long)((i - scrollIndex) * 25),450,60 + (long)((i - scrollIndex) * 25) };
+		class_data[i]->MoveWindow(rectTmp);
+		rectTmp = { 455,40 + (long)((i - scrollIndex) * 25),550,60 + (long)((i - scrollIndex) * 25) };
+		itemsum_data[i]->MoveWindow(rectTmp);
+		if (i < scrollIndex || (i - scrollIndex) > 10)
+		{
+			item_data[i]->ShowWindow(SW_HIDE);
+			price_data[i]->ShowWindow(SW_HIDE);
+			class_data[i]->ShowWindow(SW_HIDE);
+			itemsum_data[i]->ShowWindow(SW_HIDE);
+		}
+		else
+		{
+			item_data[i]->ShowWindow(SW_SHOW);
+			price_data[i]->ShowWindow(SW_SHOW);
+			class_data[i]->ShowWindow(SW_SHOW);
+			itemsum_data[i]->ShowWindow(SW_SHOW);
+		}
+	}
+	UnlockWindowUpdate();
+	return CDialogEx::OnMouseWheel(nFlags, zDelta, pt);
 }
