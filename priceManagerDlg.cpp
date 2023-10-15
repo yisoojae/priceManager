@@ -508,7 +508,7 @@ HBRUSH CpriceManagerDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	// TODO:  기본값이 적당하지 않으면 다른 브러시를 반환합니다.
 	for (int i = 0; i < tItemMax; i++)
 	{
-		if (pWnd == itemsum_data[i]) if (isColor[i])
+		if (pWnd == itemsum_data[i] || pWnd == item_data[i] || pWnd == price_data[i] || pWnd == class_data[i]) if (isColor[i])
 		{
 			return isColor[i] ? yellowBrush : (HBRUSH)GetStockObject(WHITE_BRUSH);
 		}
